@@ -1,24 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/routes/routes.dart';
+import 'package:mobile/app.dart';
+import 'package:mobile/core/locator.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  setupAppLocator();
 
   runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'Ristek Stock',
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-      ),
-      routerConfig: Routes.routerConfig,
-    );
-  }
 }
