@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
       designSize: const Size(375, 812),
       minTextAdapt: true,
       splitScreenMode: true,
-      builder: (_, __) {
+      builder: (_, _) {
         return ValueListenableBuilder<ThemeMode>(
           valueListenable: ThemeManager().themeMode,
           builder: (context, themeMode, _) {

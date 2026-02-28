@@ -1,84 +1,100 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile/core/di/injection.dart';
 import 'package:mobile/core/themes/color_theme.dart';
 import 'package:mobile/utils/theme_manager.dart';
+import '../cubit/stock_cubit.dart';
 
 class StocksScreen extends StatelessWidget {
   const StocksScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final color = PColor();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Stocks'),
-        actions: [
-          IconButton(
-            icon: Icon(
-              isDark ? Icons.light_mode : Icons.dark_mode,
-              color: PColor().primary,
-            ),
-            tooltip: isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
-            onPressed: () => ThemeManager().toggleTheme(),
-          ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Card(
-            child: ListTile(
-              title: const Text('AAPL'),
-              subtitle: const Text('Apple Inc.'),
-              trailing: Text(
-                isDark ? '+2.31%' : '+1.84%',
-                style: TextStyle(
-                  color: PColor().success,
-                  fontWeight: FontWeight.w600,
-                ),
+    return BlocProvider(
+      // Inject the Cubit using the locator (sl)
+      create: (context) => sl<StockCubit>()..loadTopGainers(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text("RiSTOCK"),
+          actions: [
+            IconButton(
+              icon: Icon(
+                isDark ? Icons.light_mode : Icons.dark_mode,
+                color: color.primary,
               ),
+              tooltip: isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
+              onPressed: () => ThemeManager().toggleTheme(),
             ),
-          ),
-          const SizedBox(height: 12),
-          Card(
-            child: ListTile(
-              title: const Text('TSLA'),
-              subtitle: const Text('Tesla, Inc.'),
-              trailing: Text(
-                isDark ? '-1.11%' : '-0.72%',
-                style: TextStyle(
-                  color: PColor().danger,
-                  fontWeight: FontWeight.w600,
+          ],
+        ),
+        body: BlocBuilder<StockCubit, StockState>(
+          builder: (context, state) {
+            if (state is StockLoading) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (state is StockError) {
+              return Center(
+                child: Text(
+                  state.message,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.error,
+                  ),
                 ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          const TextField(
-            decoration: InputDecoration(
-              hintText: 'Search ticker...',
-              prefixIcon: Icon(Icons.search),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () {},
-                  child: const Text('Watchlist'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {},
-                  child: const Text('Buy Demo'),
-                ),
-              ),
-            ],
-          ),
-        ],
+              );
+            } else if (state is StockLoaded) {
+              return ListView.separated(
+                padding: const EdgeInsets.all(16),
+                itemCount: state.stocks.length,
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  final stock = state.stocks[index];
+                  return Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: theme.cardColor,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          stock.symbol,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontSize: 18,
+                          ),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              "\$${stock.price}",
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontSize: 16,
+                              ),
+                            ),
+                            Text(
+                              stock.changePercentage,
+                              style: const TextStyle(
+                                color: Colors.greenAccent,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            }
+            return const Center(child: Text("Welcome to Stocks"));
+          },
+        ),
       ),
     );
   }

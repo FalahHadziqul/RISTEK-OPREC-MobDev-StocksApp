@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:mobile/core/di/injection.dart';
 import 'package:mobile/core/themes/color_theme.dart';
-import 'package:mobile/features/profile/locator.dart';
 import 'package:mobile/features/profile/presentation/cubit/profile_social_cubit.dart';
 import 'package:mobile/features/profile/presentation/widgets/appearance_section.dart';
 import 'package:mobile/features/profile/presentation/widgets/intereset_section.dart';
@@ -17,8 +17,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) =>
-          ProfileLocator.createProfileSocialCubit()..loadSocialLinks(),
+      create: (_) => sl<ProfileSocialCubit>()..loadSocialLinks(),
       child: BlocConsumer<ProfileSocialCubit, ProfileSocialState>(
         listener: (context, state) {
           final message = state.errorMessage;

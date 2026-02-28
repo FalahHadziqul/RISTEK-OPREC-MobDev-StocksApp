@@ -5,7 +5,7 @@ class ThemeManager {
   factory ThemeManager() => _instance;
   ThemeManager._internal();
 
-  final ValueNotifier<ThemeMode> themeMode = ValueNotifier(ThemeMode.dark);
+  final ValueNotifier<ThemeMode> themeMode = ValueNotifier(ThemeMode.light);
 
   void toggleTheme() {
     if (themeMode.value == ThemeMode.light) {
