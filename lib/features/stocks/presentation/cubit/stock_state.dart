@@ -16,12 +16,14 @@ class StockLoaded extends StockState {
   final List<StockEntity> mostActivelyTraded;
   final bool isRefreshing;
   final bool isStaleData;
+  final bool? isApiLimitHit;
 
   const StockLoaded({
     required this.topGainers,
     required this.mostActivelyTraded,
     this.isRefreshing = false,
     this.isStaleData = false,
+    this.isApiLimitHit = false,
   });
 
   @override
@@ -30,6 +32,7 @@ class StockLoaded extends StockState {
     mostActivelyTraded,
     isRefreshing,
     isStaleData,
+    isApiLimitHit ?? false,
   ];
 }
 

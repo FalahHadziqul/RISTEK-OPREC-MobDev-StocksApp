@@ -53,6 +53,10 @@ class StocksScreen extends StatelessWidget {
             } else if (state is StockLoaded) {
               final popularStocks = state.mostActivelyTraded.take(10).toList();
               final topGainers = state.topGainers.take(10).toList();
+              final isEmptyFeedWithoutData =
+                  state.mostActivelyTraded.isEmpty &&
+                  state.topGainers.isEmpty &&
+                  !state.isRefreshing;
               final allSearchableStocks = _aggregateSearchStocks(
                 mostActivelyTraded: state.mostActivelyTraded,
                 topGainers: state.topGainers,
@@ -80,18 +84,22 @@ class StocksScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  ...popularStocks.map(
-                    (stock) => Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: StockTile(
-                        stock: stock,
-                        onTap: () => context.pushNamed(
-                          ConstantRoutes.stockDetail,
-                          pathParameters: {'symbol': stock.symbol},
+                  if (popularStocks.isEmpty &&
+                      (state.isApiLimitHit == true || isEmptyFeedWithoutData))
+                    _NoStocksFoundText(theme: theme)
+                  else
+                    ...popularStocks.map(
+                      (stock) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: StockTile(
+                          stock: stock,
+                          onTap: () => context.pushNamed(
+                            ConstantRoutes.stockDetail,
+                            pathParameters: {'symbol': stock.symbol},
+                          ),
                         ),
                       ),
                     ),
-                  ),
                   const SizedBox(height: 28),
                   _SectionHeader(
                     title: 'Top Gainers Today',
@@ -105,23 +113,47 @@ class StocksScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  ...topGainers.map(
-                    (stock) => Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: StockTile(
-                        stock: stock,
-                        onTap: () => context.pushNamed(
-                          ConstantRoutes.stockDetail,
-                          pathParameters: {'symbol': stock.symbol},
+                  if (topGainers.isEmpty &&
+                      (state.isApiLimitHit == true || isEmptyFeedWithoutData))
+                    _NoStocksFoundText(theme: theme)
+                  else
+                    ...topGainers.map(
+                      (stock) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: StockTile(
+                          stock: stock,
+                          onTap: () => context.pushNamed(
+                            ConstantRoutes.stockDetail,
+                            pathParameters: {'symbol': stock.symbol},
+                          ),
                         ),
                       ),
                     ),
-                  ),
                 ],
               );
             }
             return const Center(child: Text("Welcome to Stocks"));
           },
+        ),
+      ),
+    );
+  }
+}
+
+class _NoStocksFoundText extends StatelessWidget {
+  final ThemeData theme;
+
+  const _NoStocksFoundText({required this.theme});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Text(
+        'No Stocks Found',
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );

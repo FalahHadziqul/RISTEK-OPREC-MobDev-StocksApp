@@ -52,10 +52,16 @@ class StockRemoteDataSourceImpl implements StockRemoteDataSource {
     final response = await client.get(uri);
 
     if (response.statusCode == 200) {
-      final data = json.decode(response.body);
+      final data = json.decode(response.body) as Map<String, dynamic>;
 
       if (data['Error Message'] != null) {
         throw Exception(data['Error Message']);
+      }
+      if (data['Information'] != null) {
+        throw Exception(data['Information']);
+      }
+      if (data['Note'] != null) {
+        throw Exception(data['Note']);
       }
 
       final List<dynamic> gainersList = data['top_gainers'] ?? [];

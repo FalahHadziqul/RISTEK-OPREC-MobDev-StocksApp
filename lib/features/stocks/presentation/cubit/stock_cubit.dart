@@ -75,14 +75,37 @@ class StockCubit extends Cubit<StockState> {
           mostActivelyTraded: movers.mostActivelyTraded,
           isRefreshing: false,
           isStaleData: false,
+          isApiLimitHit: false,
         ),
       );
     } catch (e) {
+      if (_isApiLimitError(e.toString())) {
+        emit(
+          const StockLoaded(
+            topGainers: [],
+            mostActivelyTraded: [],
+            isRefreshing: false,
+            isStaleData: false,
+            isApiLimitHit: true,
+          ),
+        );
+        return;
+      }
+
       emit(StockError("Failed to fetch stocks: ${e.toString()}"));
     }
   }
 
   Future<void> refreshMarketMovers() async {
     await loadMarketMovers(forceRefresh: true);
+  }
+
+  bool _isApiLimitError(String message) {
+    final value = message.toLowerCase();
+    return value.contains('call frequency') ||
+        value.contains('rate limit') ||
+        value.contains('requests per day') ||
+        value.contains('premium') ||
+        value.contains('alpha vantage');
   }
 }
