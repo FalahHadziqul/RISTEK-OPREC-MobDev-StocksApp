@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mobile/core/constants/constant_routes.dart';
 import 'package:mobile/core/di/injection.dart';
 import 'package:mobile/core/themes/color_theme.dart';
 import 'package:mobile/features/stocks/domain/entities/stock_entity.dart';
+import 'package:mobile/features/stocks/presentation/pages/stock_search_page.dart';
+import 'package:mobile/features/stocks/presentation/pages/stock_section_screen.dart';
+import 'package:mobile/features/stocks/presentation/widgets/stock_tile.dart';
 import 'package:mobile/utils/theme_manager.dart';
 import '../cubit/stock_cubit.dart';
 
@@ -21,13 +25,7 @@ class StocksScreen extends StatelessWidget {
       create: (context) => sl<StockCubit>()..loadMarketMovers(),
       child: Scaffold(
         appBar: AppBar(
-          title: Text(
-            "RiSTOCK",
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontSize: 28,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+          title: const Text("RiSTOCK"),
           actions: [
             IconButton(
               icon: Icon(
@@ -53,19 +51,71 @@ class StocksScreen extends StatelessWidget {
                 ),
               );
             } else if (state is StockLoaded) {
+              final popularStocks = state.mostActivelyTraded.take(10).toList();
+              final topGainers = state.topGainers.take(10).toList();
+              final allSearchableStocks = _aggregateSearchStocks(
+                mostActivelyTraded: state.mostActivelyTraded,
+                topGainers: state.topGainers,
+              );
+
               return ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  _SectionHeader(title: 'Popular', theme: theme),
+                  _SearchTrigger(
+                    onTap: () => context.pushNamed(
+                      ConstantRoutes.stockSearch,
+                      extra: StockSearchPayload(stocks: allSearchableStocks),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  _SectionHeader(
+                    title: 'Popular',
+                    onSeeAll: () => context.pushNamed(
+                      ConstantRoutes.stockSection,
+                      pathParameters: const {'sectionKey': 'popular'},
+                      extra: StockSectionPayload(
+                        title: 'Popular',
+                        stocks: state.mostActivelyTraded,
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 8),
-                  ...state.mostActivelyTraded.map(
-                    (stock) => _StockTile(stock: stock, theme: theme),
+                  ...popularStocks.map(
+                    (stock) => Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: StockTile(
+                        stock: stock,
+                        onTap: () => context.pushNamed(
+                          ConstantRoutes.stockDetail,
+                          pathParameters: {'symbol': stock.symbol},
+                        ),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 28),
-                  _SectionHeader(title: 'Top Gainers Today', theme: theme),
+                  _SectionHeader(
+                    title: 'Top Gainers Today',
+                    onSeeAll: () => context.pushNamed(
+                      ConstantRoutes.stockSection,
+                      pathParameters: const {'sectionKey': 'top-gainers'},
+                      extra: StockSectionPayload(
+                        title: 'Top Gainers Today',
+                        stocks: state.topGainers,
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 8),
-                  ...state.topGainers.map(
-                    (stock) => _StockTile(stock: stock, theme: theme),
+                  ...topGainers.map(
+                    (stock) => Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: StockTile(
+                        stock: stock,
+                        onTap: () => context.pushNamed(
+                          ConstantRoutes.stockDetail,
+                          pathParameters: {'symbol': stock.symbol},
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               );
@@ -78,98 +128,88 @@ class StocksScreen extends StatelessWidget {
   }
 }
 
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  final ThemeData theme;
+List<StockEntity> _aggregateSearchStocks({
+  required List<StockEntity> mostActivelyTraded,
+  required List<StockEntity> topGainers,
+}) {
+  final uniqueBySymbol = <String, StockEntity>{};
+  for (final stock in [...mostActivelyTraded, ...topGainers]) {
+    uniqueBySymbol[stock.symbol.toUpperCase()] = stock;
+  }
+  return uniqueBySymbol.values.toList();
+}
 
-  const _SectionHeader({required this.title, required this.theme});
+class _SearchTrigger extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _SearchTrigger({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: theme.textTheme.titleMedium?.copyWith(
-        fontSize: 18,
-        fontWeight: FontWeight.w700,
-        color: theme.colorScheme.onSurface,
+    final theme = Theme.of(context);
+    final color = PColor();
+    final isDark = theme.brightness == Brightness.dark;
+    final textColor = isDark ? color.textPrimaryDark : color.textPrimaryLight;
+    return SearchBar(
+      hintText: 'Search ticker or company...',
+      leading: Icon(Icons.search, color: textColor),
+      textStyle: WidgetStatePropertyAll(
+        theme.textTheme.titleMedium?.copyWith(
+          color: textColor,
+          fontWeight: FontWeight.w500,
+        ),
       ),
+      backgroundColor: WidgetStatePropertyAll(
+        theme.colorScheme.surfaceContainer,
+      ),
+      elevation: const WidgetStatePropertyAll(0),
+      side: WidgetStatePropertyAll(
+        BorderSide(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.6),
+        ),
+      ),
+      onTap: onTap,
     );
   }
 }
 
-class _StockTile extends StatelessWidget {
-  final StockEntity stock;
-  final ThemeData theme;
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  final VoidCallback onSeeAll;
 
-  const _StockTile({required this.stock, required this.theme});
+  const _SectionHeader({required this.title, required this.onSeeAll});
 
   @override
   Widget build(BuildContext context) {
-    final isPositive = !stock.changePercentage.startsWith('-');
-    final palette = PColor();
-    final colorScheme = theme.colorScheme;
-    final borderColor = colorScheme.outlineVariant.withValues(
-      alpha: theme.brightness == Brightness.dark ? 0.78 : 0.92,
-    );
-    final shadowColor = colorScheme.shadow.withValues(
-      alpha: theme.brightness == Brightness.dark ? 0.10 : 0.08,
-    );
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(10),
-        onTap: () => context.push('/detail/${stock.symbol}'),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerLow,
-            border: Border.all(color: borderColor, width: 0.9),
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                color: shadowColor,
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
+    final theme = Theme.of(context);
+    final color = PColor();
+    final isDark = theme.brightness == Brightness.dark;
+    final textColor = isDark ? color.textPrimaryDark : color.textPrimaryLight;
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: textColor,
+            ),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        ),
+        TextButton(
+          onPressed: onSeeAll,
+          style: TextButton.styleFrom(foregroundColor: textColor),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                stock.symbol,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: theme.colorScheme.onSurface,
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    "\$${stock.price}",
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  Text(
-                    stock.changePercentage,
-                    style: TextStyle(
-                      color: isPositive ? palette.success : palette.danger,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
+              Text('See All', style: TextStyle(fontWeight: FontWeight.w700)),
+              SizedBox(width: 4),
+              Icon(Icons.arrow_forward, size: 16),
             ],
           ),
         ),
-      ),
+      ],
     );
   }
 }
