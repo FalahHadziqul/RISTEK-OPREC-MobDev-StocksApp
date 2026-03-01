@@ -14,4 +14,12 @@ class StockModel extends StockEntity {
       changePercentage: json['change_percentage'] ?? '0.0%',
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'ticker': symbol,
+      'price': price,
+      'change_percentage': changePercentage,
+    };
+  }
 }

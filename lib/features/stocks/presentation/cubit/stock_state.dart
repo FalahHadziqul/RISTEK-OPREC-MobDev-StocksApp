@@ -12,12 +12,25 @@ class StockInitial extends StockState {}
 class StockLoading extends StockState {}
 
 class StockLoaded extends StockState {
-  final List<StockEntity> stocks;
+  final List<StockEntity> topGainers;
+  final List<StockEntity> mostActivelyTraded;
+  final bool isRefreshing;
+  final bool isStaleData;
 
-  const StockLoaded(this.stocks);
+  const StockLoaded({
+    required this.topGainers,
+    required this.mostActivelyTraded,
+    this.isRefreshing = false,
+    this.isStaleData = false,
+  });
 
   @override
-  List<Object> get props => [stocks];
+  List<Object> get props => [
+    topGainers,
+    mostActivelyTraded,
+    isRefreshing,
+    isStaleData,
+  ];
 }
 
 class StockError extends StockState {
