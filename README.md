@@ -41,7 +41,7 @@ Halaman **Profile** menampilkan informasi saya serta fitur personalisasi aplikas
 
 ---
 
-## RiSTOCK Development Learnings
+## Pembelajaran
 
 Selama proses pengembangan **RiSTOCK** ini, saya belajar banyak konsep penting baru yang antara lain:
 
