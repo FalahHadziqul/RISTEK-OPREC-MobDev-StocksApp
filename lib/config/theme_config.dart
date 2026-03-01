@@ -143,14 +143,14 @@ class AppTheme {
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: _color.containerDark,
         indicatorColor: _color.primary.withValues(alpha: 0.2),
-        iconTheme: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return IconThemeData(color: _color.primary);
           }
           return IconThemeData(color: _color.textSecondaryDark);
         }),
-        labelTextStyle: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return GoogleFonts.poppins(
               color: _color.primary,
               fontWeight: FontWeight.w600,
