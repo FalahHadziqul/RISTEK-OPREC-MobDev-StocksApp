@@ -2,7 +2,24 @@ import 'package:equatable/equatable.dart';
 
 enum NewsSentiment { bullish, bearish, neutral, unknown }
 
-enum NewsCategory { all, watchlist, crypto, forex, stocks, economy }
+enum NewsCategory { all, sectors, economy }
+
+class NewsTickerSentiment extends Equatable {
+  final String ticker;
+  final NewsSentiment sentiment;
+  final String label;
+  final double? score;
+
+  const NewsTickerSentiment({
+    required this.ticker,
+    required this.sentiment,
+    required this.label,
+    required this.score,
+  });
+
+  @override
+  List<Object?> get props => [ticker, sentiment, label, score];
+}
 
 class NewsEntity extends Equatable {
   final String id;
@@ -15,6 +32,8 @@ class NewsEntity extends Equatable {
   final NewsSentiment sentiment;
   final String url;
   final List<String> tickers;
+  final List<NewsTickerSentiment> tickerSentiments;
+  final Set<NewsCategory> categories;
 
   const NewsEntity({
     required this.id,
@@ -27,6 +46,8 @@ class NewsEntity extends Equatable {
     required this.sentiment,
     required this.url,
     required this.tickers,
+    required this.tickerSentiments,
+    required this.categories,
   });
 
   @override
@@ -41,5 +62,7 @@ class NewsEntity extends Equatable {
     sentiment,
     url,
     tickers,
+    tickerSentiments,
+    categories,
   ];
 }

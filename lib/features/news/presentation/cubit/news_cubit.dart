@@ -7,41 +7,47 @@ part 'news_state.dart';
 
 class NewsCubit extends Cubit<NewsState> {
   final NewsRepository newsRepository;
+  List<NewsEntity> _allNews = const [];
 
   NewsCubit({required this.newsRepository}) : super(NewsInitial());
 
   Future<void> loadNews({bool forceRefresh = false}) async {
+    final selectedCategory = _selectedCategoryOrDefault();
     final cachedAny = await newsRepository.getCachedNews(allowExpired: true);
 
     if (cachedAny != null) {
+      _allNews = cachedAny;
       emit(
         NewsLoaded(
-          feed: cachedAny,
-          selectedCategory: NewsCategory.all,
+          feed: _applyCategoryFilter(selectedCategory, cachedAny),
+          selectedCategory: selectedCategory,
           isRefreshing: true,
           isStaleData: true,
         ),
       );
 
       final cachedFresh = await newsRepository.getCachedNews();
+      List<NewsEntity> baselineFeed = cachedAny;
       if (cachedFresh != null && !forceRefresh) {
+        _allNews = cachedFresh;
+        baselineFeed = cachedFresh;
         emit(
           NewsLoaded(
-            feed: cachedFresh,
-            selectedCategory: NewsCategory.all,
-            isRefreshing: false,
+            feed: _applyCategoryFilter(selectedCategory, cachedFresh),
+            selectedCategory: selectedCategory,
+            isRefreshing: true,
             isStaleData: false,
           ),
         );
-        return;
       }
 
       try {
         final fresh = await newsRepository.refreshNews(force: forceRefresh);
+        _allNews = fresh;
         emit(
           NewsLoaded(
-            feed: fresh,
-            selectedCategory: NewsCategory.all,
+            feed: _applyCategoryFilter(selectedCategory, fresh),
+            selectedCategory: selectedCategory,
             isRefreshing: false,
             isStaleData: false,
           ),
@@ -49,10 +55,10 @@ class NewsCubit extends Cubit<NewsState> {
       } catch (_) {
         emit(
           NewsLoaded(
-            feed: cachedAny,
-            selectedCategory: _selectedCategoryOrDefault(),
+            feed: _applyCategoryFilter(selectedCategory, baselineFeed),
+            selectedCategory: selectedCategory,
             isRefreshing: false,
-            isStaleData: true,
+            isStaleData: cachedFresh == null,
           ),
         );
       }
@@ -63,10 +69,11 @@ class NewsCubit extends Cubit<NewsState> {
 
     try {
       final fresh = await newsRepository.refreshNews(force: forceRefresh);
+      _allNews = fresh;
       emit(
         NewsLoaded(
-          feed: fresh,
-          selectedCategory: NewsCategory.all,
+          feed: _applyCategoryFilter(selectedCategory, fresh),
+          selectedCategory: selectedCategory,
           isRefreshing: false,
           isStaleData: false,
         ),
@@ -83,8 +90,23 @@ class NewsCubit extends Cubit<NewsState> {
   void selectCategory(NewsCategory category) {
     final current = state;
     if (current is NewsLoaded) {
-      emit(current.copyWith(selectedCategory: category));
+      emit(
+        current.copyWith(
+          selectedCategory: category,
+          feed: _applyCategoryFilter(category, _allNews),
+        ),
+      );
     }
+  }
+
+  List<NewsEntity> _applyCategoryFilter(
+    NewsCategory category,
+    List<NewsEntity> source,
+  ) {
+    if (category == NewsCategory.all) return List<NewsEntity>.from(source);
+    return source
+        .where((article) => article.categories.contains(category))
+        .toList();
   }
 
   NewsCategory _selectedCategoryOrDefault() {

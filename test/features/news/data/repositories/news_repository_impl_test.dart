@@ -101,6 +101,15 @@ NewsEntity _sampleNews({required String id}) {
     sentiment: NewsSentiment.neutral,
     url: 'https://example.com/$id',
     tickers: const ['AAPL'],
+    tickerSentiments: const [
+      NewsTickerSentiment(
+        ticker: 'AAPL',
+        sentiment: NewsSentiment.neutral,
+        label: 'Neutral',
+        score: 0,
+      ),
+    ],
+    categories: const {NewsCategory.sectors},
   );
 }
 
@@ -116,5 +125,15 @@ NewsModel _sampleModel({required String id}) {
     sentiment: NewsSentiment.neutral,
     url: 'https://example.com/$id',
     tickers: const ['AAPL'],
+    tickerSentiments: const [
+      NewsTickerSentiment(
+        ticker: 'AAPL',
+        sentiment: NewsSentiment.neutral,
+        label: 'Neutral',
+        score: 0,
+      ),
+    ],
+    categories: const {NewsCategory.sectors},
   );
 }
+

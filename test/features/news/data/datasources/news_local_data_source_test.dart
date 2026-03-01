@@ -40,6 +40,15 @@ void main() {
       sentiment: NewsSentiment.neutral,
       url: 'https://example.com/sample',
       tickers: const ['AAPL'],
+      tickerSentiments: const [
+        NewsTickerSentiment(
+          ticker: 'AAPL',
+          sentiment: NewsSentiment.neutral,
+          label: 'Neutral',
+          score: 0,
+        ),
+      ],
+      categories: const {NewsCategory.sectors},
     );
   }
 
@@ -74,6 +83,8 @@ void main() {
             'sentiment': 'neutral',
             'url': '',
             'tickers': <String>[],
+            'ticker_sentiments': <Map<String, dynamic>>[],
+            'categories': <String>[],
           },
         ],
       },
@@ -88,3 +99,4 @@ void main() {
     expect(withoutExpired, isNull);
   });
 }
+

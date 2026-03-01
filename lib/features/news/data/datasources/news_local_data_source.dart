@@ -55,22 +55,24 @@ class NewsLocalDataSourceImpl implements NewsLocalDataSource {
     final wrapper = {
       'cachedAt': DateTime.now().toIso8601String(),
       'data': {
-        'feed': feed
-            .map(
-              (item) => NewsModel(
-                id: item.id,
-                title: item.title,
-                summary: item.summary,
-                bannerImageUrl: item.bannerImageUrl,
-                author: item.author,
-                source: item.source,
-                publishedAt: item.publishedAt,
-                sentiment: item.sentiment,
-                url: item.url,
-                tickers: item.tickers,
-              ).toCacheJson(),
-            )
-            .toList(),
+        'feed': feed.map((item) {
+          final model = NewsModel(
+            id: item.id,
+            title: item.title,
+            summary: item.summary,
+            bannerImageUrl: item.bannerImageUrl,
+            author: item.author,
+            source: item.source,
+            publishedAt: item.publishedAt,
+            sentiment: item.sentiment,
+            url: item.url,
+            tickers: item.tickers,
+            tickerSentiments: item.tickerSentiments,
+            categories: item.categories,
+            topics: item is NewsModel ? item.topics : const [],
+          );
+          return model.toCacheJson();
+        }).toList(),
       },
     };
 

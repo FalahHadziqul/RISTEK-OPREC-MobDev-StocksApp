@@ -18,6 +18,15 @@ void main() {
       sentiment: NewsSentiment.bullish,
       url: 'https://example.com/news/1',
       tickers: const ['SPY'],
+      tickerSentiments: const [
+        NewsTickerSentiment(
+          ticker: 'SPY',
+          sentiment: NewsSentiment.bullish,
+          label: 'Bullish',
+          score: 0.6,
+        ),
+      ],
+      categories: const {NewsCategory.sectors},
     );
 
     await tester.pumpWidget(
@@ -34,3 +43,4 @@ void main() {
     expect(find.text('Bullish'), findsOneWidget);
   });
 }
+

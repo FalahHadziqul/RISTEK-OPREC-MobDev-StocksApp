@@ -13,10 +13,6 @@ class NewsFilterChips extends StatelessWidget {
 
   static const List<NewsCategory> _categories = [
     NewsCategory.all,
-    NewsCategory.watchlist,
-    NewsCategory.crypto,
-    NewsCategory.forex,
-    NewsCategory.stocks,
     NewsCategory.economy,
   ];
 
@@ -24,16 +20,10 @@ class NewsFilterChips extends StatelessWidget {
     switch (category) {
       case NewsCategory.all:
         return 'All';
-      case NewsCategory.watchlist:
-        return 'Watchlist';
-      case NewsCategory.crypto:
-        return 'Crypto';
-      case NewsCategory.forex:
-        return 'Forex';
-      case NewsCategory.stocks:
-        return 'Stocks';
       case NewsCategory.economy:
-        return 'Economy';
+        return 'Trend Related';
+      case NewsCategory.sectors:
+        return 'Sectors';
     }
   }
 

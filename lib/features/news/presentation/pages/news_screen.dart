@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:mobile/core/constants/constant_routes.dart';
 import 'package:mobile/core/di/injection.dart';
+import 'package:mobile/core/themes/color_theme.dart';
 import 'package:mobile/features/news/domain/entities/news.dart';
 import 'package:mobile/features/news/presentation/cubit/news_cubit.dart';
 import 'package:mobile/features/news/presentation/widgets/news_card.dart';
 import 'package:mobile/features/news/presentation/widgets/news_filter_chips.dart';
+import 'package:mobile/utils/theme_manager.dart';
 
 class NewsScreen extends StatelessWidget {
   const NewsScreen({super.key});
@@ -13,6 +17,8 @@ class NewsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final color = PColor();
 
     return BlocProvider(
       create: (_) => sl<NewsCubit>()..loadNews(),
@@ -21,9 +27,12 @@ class NewsScreen extends StatelessWidget {
           title: const Text('Market News'),
           actions: [
             IconButton(
-              onPressed: () {},
-              icon: Icon(Icons.tune, color: colorScheme.primary),
-              tooltip: 'Filter Settings',
+              icon: Icon(
+                isDark ? Icons.light_mode : Icons.dark_mode,
+                color: color.primary,
+              ),
+              tooltip: isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
+              onPressed: () => ThemeManager().toggleTheme(),
             ),
           ],
         ),
@@ -54,6 +63,7 @@ class NewsScreen extends StatelessWidget {
 
                   if (previous is NewsLoaded && current is NewsLoaded) {
                     return previous.feed != current.feed ||
+                        previous.selectedCategory != current.selectedCategory ||
                         previous.isRefreshing != current.isRefreshing ||
                         previous.isStaleData != current.isStaleData;
                   }
@@ -104,7 +114,13 @@ class NewsScreen extends StatelessWidget {
                         itemCount: state.feed.length,
                         itemBuilder: (context, index) {
                           final article = state.feed[index];
-                          return NewsCard(article: article, onTap: () {});
+                          return NewsCard(
+                            article: article,
+                            onTap: () => context.pushNamed(
+                              ConstantRoutes.newsDetail,
+                              extra: article,
+                            ),
+                          );
                         },
                         separatorBuilder: (context, index) => Divider(
                           height: 18,
